@@ -1,7 +1,11 @@
+"use client";
+
+import Example from "@/components/example";
+
 export default function Home() {
   return (
     <main>
-      <h1>Hello world</h1>
+      <Example />
     </main>
   );
 }
