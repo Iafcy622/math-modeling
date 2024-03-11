@@ -12,6 +12,9 @@ export function generateData(
   const xValues: number[] = [];
   const yValues: number[] = [];
 
+  i1 = Math.floor(i1);
+  i2 = Math.ceil(i2);
+
   for (let x = i1; x <= i2; x += step) {
     yValues.push(eval(value));
     xValues.push(x);

@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -27,6 +28,7 @@ import {
 import { Chart } from "react-chartjs-2";
 import { generateData, polyfit1d } from "@/lib/generate";
 import KaTeX from "@/components/katex-expression";
+import { useState } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -41,15 +43,22 @@ ChartJS.register(
 );
 
 export default function Example() {
-  const pts: ScatterDataPoint[] = [
+  const [pts, setPts] = useState([
     { x: 1, y: 8.1 },
     { x: 2, y: 22.1 },
     { x: 3, y: 60.1 },
     { x: 4, y: 165 },
-  ];
-  const [xValues, yValues] = generateData("50.87 * x - 63.35", 0, 5, 0.5);
+  ]);
 
   const { a, b } = polyfit1d(pts);
+
+  const xs = pts.map((pt) => pt.x);
+  const [xValues, yValues] = generateData(
+    `${a} * x + ${b}`,
+    Math.min(...xs) - 1,
+    Math.max(...xs) + 1,
+    0.5
+  );
 
   const options: ChartOptions = {
     responsive: true,
@@ -84,29 +93,32 @@ export default function Example() {
     ],
   };
 
+  function handleInputChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    pt: ScatterDataPoint,
+    field: "x" | "y"
+  ) {
+    const newPts = pts.map((p) => {
+      if (p.x == pt.x && p.y == pt.y) {
+        pt[field] = Number(e.target.value);
+        return pt;
+      } else {
+        return p;
+      }
+    });
+    setPts(newPts);
+  }
+
   return (
     <main>
+      <h1 className="text-2xl text-center mb-4">
+        Least-squares Criterion (Linear)
+      </h1>
+      <div className="w-1/2 mx-auto">
+        <Chart type="line" data={data} options={options} />
+      </div>
       <div className="grid grid-cols-2 w-full py-4">
-        <div className="w-full">
-          {/* <Table>
-            <TableCaption>Data points</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>x</TableHead>
-                <TableHead>y</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pts.map((pt) => {
-                return (
-                  <TableRow>
-                    <TableCell>{pt.x}</TableCell>
-                    <TableCell>{pt.y}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table> */}
+        <div>
           <KaTeX
             texExpression="\text{Assume the model function is }f(x;a,b)=ax+b"
             className="mt-6"
@@ -128,9 +140,43 @@ export default function Example() {
             className="mt-2"
           />
         </div>
-        <div className="w-full">
-          <Chart type="line" data={data} options={options} />
-        </div>
+        <Table>
+          <TableCaption>Data points</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>x</TableHead>
+              <TableHead>y</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pts.map((pt, i) => {
+              return (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      step={0.5}
+                      className="p-4 rounded-none focus-visible:ring-0 ring-0"
+                      value={pt.x}
+                      onChange={(e) => handleInputChange(e, pt, "x")}
+                      onKeyDown={(e) => e.preventDefault()}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      step={1}
+                      className="p-4 rounded-none focus-visible:ring-0 ring-0"
+                      value={pt.y}
+                      onChange={(e) => handleInputChange(e, pt, "y")}
+                      onKeyDown={(e) => e.preventDefault()}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
     </main>
   );
