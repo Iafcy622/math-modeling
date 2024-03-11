@@ -19,6 +19,7 @@ import {
   Tooltip,
   Legend,
   ScatterController,
+  LineController,
   ScatterDataPoint,
   ChartOptions,
   ChartData,
@@ -33,6 +34,7 @@ ChartJS.register(
   PointElement,
   LineElement,
   ScatterController,
+  LineController,
   Title,
   Tooltip,
   Legend
