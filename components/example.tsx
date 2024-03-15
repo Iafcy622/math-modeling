@@ -1,16 +1,6 @@
 "use client";
 
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
@@ -29,6 +19,9 @@ import { Chart } from "react-chartjs-2";
 import { generateData, polyfit1d } from "@/lib/generate";
 import KaTeX from "@/components/katex-expression";
 import { useState } from "react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 ChartJS.register(
   CategoryScale,
@@ -44,24 +37,18 @@ ChartJS.register(
 
 export default function Example() {
   const [pts, setPts] = useState([
-    { x: 1, y: 8.1 },
-    { x: 2, y: 22.1 },
-    { x: 3, y: 60.1 },
-    { x: 4, y: 165 },
+    { x: 1, y: 2 },
+    { x: 2, y: 3 },
+    { x: 3, y: 6 },
   ]);
 
   const { a, b } = polyfit1d(pts);
 
-  const xs = pts.map((pt) => pt.x);
-  const [xValues, yValues] = generateData(
-    `${a} * x + ${b}`,
-    Math.min(...xs) - 1,
-    Math.max(...xs) + 1,
-    0.5
-  );
+  const [xValues, yValues] = generateData(`${a} * x + ${b}`, 0, 4);
 
   const options: ChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     aspectRatio: 1.25,
     plugins: {
       legend: {
@@ -70,6 +57,13 @@ export default function Example() {
       title: {
         display: true,
         text: "Least-squares criterion",
+      },
+    },
+    scales: {
+      y: {
+        suggestedMax: 8,
+        suggestedMin: 0,
+        beginAtZero: true,
       },
     },
   };
@@ -93,91 +87,83 @@ export default function Example() {
     ],
   };
 
-  function handleInputChange(
-    e: React.ChangeEvent<HTMLInputElement>,
-    pt: ScatterDataPoint,
-    field: "x" | "y"
-  ) {
-    const newPts = pts.map((p) => {
-      if (p.x == pt.x && p.y == pt.y) {
-        pt[field] = Number(e.target.value);
-        return pt;
-      } else {
-        return p;
-      }
-    });
-    setPts(newPts);
+  function handleInputChange(val: number, x: number) {
+    setPts(pts.map((pt) => (pt.x == x ? { x, y: val } : pt)));
   }
 
   return (
-    <main>
-      <h1 className="text-2xl text-center mb-4">
-        Least-squares Criterion (Linear)
-      </h1>
-      <div className="w-1/2 mx-auto">
-        <Chart type="line" data={data} options={options} />
-      </div>
-      <div className="grid grid-cols-2 w-full py-4">
-        <div>
+    <>
+      <h1 className="text-2xl my-4">Least-squares Criterion (Linear)</h1>
+      <Separator />
+
+      <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="py-4">
+          <form className="mb-8">
+            <Label htmlFor="y1">y1</Label>
+            <Slider
+              className="mb-4"
+              defaultValue={[pts[0].y]}
+              max={6}
+              step={1}
+              id="y1"
+              onValueChange={([val]) => handleInputChange(val, 1)}
+            />
+            <Label htmlFor="y2">y2</Label>
+            <Slider
+              className="mb-4"
+              defaultValue={[pts[1].y]}
+              max={6}
+              step={1}
+              id="y2"
+              onValueChange={([val]) => handleInputChange(val, 2)}
+            />
+            <Label htmlFor="y3">y3</Label>
+            <Slider
+              className="mb-4"
+              defaultValue={[pts[2].y]}
+              max={6}
+              step={1}
+              id="y3"
+              onValueChange={([val]) => handleInputChange(val, 3)}
+            />
+          </form>
+
+          <span className="text-xl">Model function: </span>
           <KaTeX
-            texExpression="\text{Assume the model function is }f(x;a,b)=ax+b"
-            className="mt-6"
-          />
-          <KaTeX
-            texExpression="\displaystyle\text{We would like to minimize }S(a,b) = \sum_{i=1}^m (y_i-ax_i-b)^2"
-            className="mt-2"
-          />
-          <KaTeX texExpression="\displaystyle \cfrac{\partial S}{\partial a} = \sum_{i=1}^m (-2x_i(y_i-ax_i-b)) = 0" />
-          <KaTeX texExpression="\displaystyle \cfrac{\partial S}{\partial b} = \sum_{i=1}^m (-2(y_i-ax_i-b)) = 0" />
-          <KaTeX
-            texExpression={`\\therefore a=${a.toFixed(2)}, b=${b.toFixed(2)}`}
-            className="mt-2"
-          />
-          <KaTeX
-            texExpression={`\\text{Our model function is }f(x)=${a.toFixed(
-              2
-            )}x ${b > 0 ? "+" : "-"} ${Math.abs(b).toFixed(2)}`}
-            className="mt-2"
+            texExpression={`f(x)=${a.toFixed(2)}x ${
+              b > 0 ? "+" : "-"
+            } ${Math.abs(b).toFixed(2)}`}
+            className="inline text-xl"
           />
         </div>
-        <Table>
-          <TableCaption>Data points</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>x</TableHead>
-              <TableHead>y</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pts.map((pt, i) => {
-              return (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      step={0.5}
-                      className="p-4 rounded-none focus-visible:ring-0 ring-0"
-                      value={pt.x}
-                      onChange={(e) => handleInputChange(e, pt, "x")}
-                      onKeyDown={(e) => e.preventDefault()}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      step={1}
-                      className="p-4 rounded-none focus-visible:ring-0 ring-0"
-                      value={pt.y}
-                      onChange={(e) => handleInputChange(e, pt, "y")}
-                      onKeyDown={(e) => e.preventDefault()}
-                    />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div>
+          <Chart type="line" data={data} options={options} height={400} />
+        </div>
       </div>
-    </main>
+      <div className="mt-12">
+        <h2 className="text-2xl my-4">Derive the model</h2>
+        <Separator />
+        <KaTeX
+          texExpression="\text{Assume the model function is }f(x;a,b)=ax+b"
+          className="mt-6 text-lg"
+        />
+        <KaTeX
+          texExpression="\displaystyle\text{We would like to minimize }S(a,b) = \sum_{i=1}^m (y_i-ax_i-b)^2"
+          className="mt-2 text-lg"
+        />
+        <KaTeX texExpression="\displaystyle \cfrac{\partial S}{\partial a} = \sum_{i=1}^m (-2x_i(y_i-ax_i-b)) = 0" />
+        <KaTeX texExpression="\displaystyle \cfrac{\partial S}{\partial b} = \sum_{i=1}^m (-2(y_i-ax_i-b)) = 0" />
+        <KaTeX
+          texExpression={`\\therefore a=${a.toFixed(2)}, b=${b.toFixed(2)}`}
+          className="mt-2 text-lg"
+        />
+        <KaTeX
+          texExpression={`\\text{Our model function is }f(x)=${a.toFixed(2)}x ${
+            b > 0 ? "+" : "-"
+          } ${Math.abs(b).toFixed(2)}`}
+          className="mt-2 text-lg"
+        />
+      </div>
+    </>
   );
 }
