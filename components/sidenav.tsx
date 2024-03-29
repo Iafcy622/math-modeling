@@ -67,7 +67,7 @@ export function Sidebar({ className }: { className: String }) {
               {content?.map((item) => {
                 if (item.collapsible) {
                   return (
-                    <Collapsible>
+                    <Collapsible key={item.id}>
                       <CollapsibleTrigger className="w-full flex justify-between font-normal px-4">
                         {item.name}
                         <CaretSortIcon className="mr-2 h-4 w-4" />
@@ -75,7 +75,7 @@ export function Sidebar({ className }: { className: String }) {
                       <CollapsibleContent>
                         {item.collapseContent?.map((collapse) => (
                           <Link
-                            key={item.id}
+                            key={collapse.url}
                             href={`/${collapse.url}`}
                             passHref
                           >
