@@ -3,3 +3,5 @@
 This is a interactive website to showcase some techniques in mathematical modeling.
 
 - Least-squares criterion
+  * Linear fitting
+  * Polynomial fitting
