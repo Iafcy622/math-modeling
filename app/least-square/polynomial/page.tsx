@@ -94,10 +94,6 @@ export default function Page() {
     ],
   };
 
-  function handleInputChange(val: number) {
-    setOrder(val);
-  }
-
   return (
     <>
       <h1 className="text-2xl my-4">Least-squares Criterion (Polynomial)</h1>
@@ -114,7 +110,7 @@ export default function Page() {
               min={1}
               step={1}
               id="order"
-              onValueChange={([val]) => handleInputChange(val)}
+              onValueChange={([val]) => setOrder(val)}
             />
           </form>
 
@@ -148,8 +144,26 @@ export default function Page() {
           texExpression="\displaystyle\text{We would like to minimize }S(a,b) = \sum_{i=1}^m (y_i-f(x_i))^2"
           className="mt-2 text-lg"
         />
-        <KaTeX texExpression="\displaystyle \cfrac{\partial S}{\partial a} = \sum_{i=1}^m (-2x_i(y_i-ax_i-b)) = 0" />
-        <KaTeX texExpression="\displaystyle \cfrac{\partial S}{\partial b} = \sum_{i=1}^m (-2(y_i-ax_i-b)) = 0" />
+
+        <KaTeX
+          texExpression={
+            "\\begin{cases}" +
+            alphabet
+              .slice(0, order + 1)
+              .map((char, i) =>
+                order - i > 1
+                  ? `\\displaystyle \\cfrac{\\partial S}{\\partial ${char}} = \\sum_{i=1}^m (-2x_i^${
+                      order - i
+                    }(y_i-f(x_i))) = 0`
+                  : order - i == 1
+                  ? `\\displaystyle \\cfrac{\\partial S}{\\partial ${char}} = \\sum_{i=1}^m (-2x_i(y_i-f(x_i))) = 0`
+                  : `\\displaystyle \\cfrac{\\partial S}{\\partial ${char}} = \\sum_{i=1}^m (-2(y_i-f(x_i))) = 0`
+              )
+              .join("\\\\") +
+            "\\end{cases}"
+          }
+        />
+
         <KaTeX
           texExpression={`\\therefore ${param.map(
             (p, i) => `${alphabet[i]}=${p.toFixed(2)}`
